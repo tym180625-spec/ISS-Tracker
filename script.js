@@ -1,5 +1,5 @@
 //([latitude, longitude], zoom level)
-const map = L.map('issMap').setView([0, 0], 8);
+const map = L.map('issMap').setView([0, 0], 10);
 
 //tile url and attribution, just found in leaflet documentation, can use other tile providers as well
 //the attribution is an object that gives credit to the tile provider, in this case OpenStreetMap
@@ -41,13 +41,13 @@ const getISS = async () => {
     document.getElementById("long").textContent = longitude;
     
     marker.setLatLng([latitude, longitude]);
-    map.setView([latitude, longitude]);
+    map.setView([latitude, longitude], 10);
     latlngs.push([latitude, longitude]);
     issPath.setLatLngs(latlngs);
 
     // Fit only after we have at least two points in the line.
     if (latlngs.length > 1) {
-        map.fitBounds(issPath.getBounds(), { padding: [20, 20] });
+        map.fitBounds(issPath.getBounds(), { padding: [20, 20], maxZoom: 10 });
     }
 }
 
