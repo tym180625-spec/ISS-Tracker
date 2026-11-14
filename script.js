@@ -5,7 +5,7 @@ const map = L.map('issMap').setView([0, 0], 10);
 //the attribution is an object that gives credit to the tile provider, in this case OpenStreetMap
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
 //customize icon
@@ -25,8 +25,14 @@ const issPath = L.polyline(latlngs, {color: 'red'}).addTo(map);
 
 //api endpoint for iss location
 const api_url = "https://api.wheretheiss.at/v1/satellites/25544";
+let hasInitialPosition = false;
+
 const getISS = async () => {
     const response = await fetch(api_url);
+    if (!response.ok) {
+        throw new Error(`ISS location request failed: ${response.status}`);
+    }
+
     //need to convert the response to json before we can use it
     const data = await response.json();
     console.log(data.latitude);
@@ -41,15 +47,14 @@ const getISS = async () => {
     document.getElementById("long").textContent = longitude;
     
     marker.setLatLng([latitude, longitude]);
-    map.setView([latitude, longitude], 10);
+    if (!hasInitialPosition) {
+        map.setView([latitude, longitude], 10);
+        hasInitialPosition = true;
+    }
+
     latlngs.push([latitude, longitude]);
     issPath.setLatLngs(latlngs);
-
-    // Fit only after we have at least two points in the line.
-    if (latlngs.length > 1) {
-        map.fitBounds(issPath.getBounds(), { padding: [20, 20], maxZoom: 10 });
-    }
 }
 
-getISS();
-setInterval(getISS, 1000); //call the getISS function every 1 second
+getISS().catch(console.error);
+setInterval(() => getISS().catch(console.error), 5000);
